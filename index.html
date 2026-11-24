@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secret Santa Lille</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+/* VOICE: joyeux, complice, une soirée de décembre entre amis
+   IDEA: une étiquette cadeau qu'on reçoit chacun sur son téléphone
+   PICTURE: le QR code à scanner, puis la grande étiquette qui révèle le nom
+   COLOUR and TYPE: vert sapin profond, rouge brique flamand, or ; Bagel Fat One + Outfit
+   LAYOUT: une colonne mobile, une étape par écran, gros boutons au pouce */
+:root{color-scheme:light dark;--bg:light-dark(#a3161f,#7a0f17);--bg2:light-dark(#6e0b12,#4d070c);--ink:#fff8ee;--card:#fffaf0;--cink:#1d1a16;--red:#c8102e;--green:#17633f;--gold:#f5c542;--soft:#ffffff1f;--mut:#ffe0d6}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg2);color:var(--ink);font:17px/1.5 Outfit,system-ui,sans-serif;overflow-x:clip;min-height:100vh;
+ background-image:radial-gradient(130% 70% at 50% 0%,var(--bg) 0,transparent 70%),radial-gradient(circle at 15% 8%,#ffffff14 0 2px,transparent 3px),radial-gradient(circle at 70% 20%,#ffffff10 0 1.5px,transparent 2.5px),radial-gradient(circle at 40% 60%,#ffffff0c 0 2px,transparent 3px);background-size:100% 100vh,120px 120px,90px 90px,150px 150px;background-repeat:no-repeat,repeat,repeat,repeat;background-attachment:fixed,scroll,scroll,scroll}
+#snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+main{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:22px 18px 48px}
+h1,h2{font-family:"Bagel Fat One",Outfit,sans-serif;font-weight:400;line-height:1.05;margin:0 0 6px;text-wrap:balance}
+h1{font-size:clamp(34px,9vw,46px);color:#fff;text-shadow:0 3px 0 var(--bg2)}
+.stripe{position:fixed;top:0;left:0;right:0;height:10px;z-index:2;background:repeating-linear-gradient(-45deg,#fff 0 12px,var(--red) 12px 24px)}
+.box{border:1px solid #ffffff26}
+main{padding-top:32px!important}h2{font-size:30px}
+.sub{color:var(--mut);margin:0 0 20px}
+.box{background:var(--soft);border-radius:18px;padding:16px;margin-bottom:14px}
+.box h3{margin:0 0 10px;font-size:17px;font-weight:800}
+label{display:block;font-size:14px;color:var(--mut);margin:10px 0 4px}
+input,select{width:100%;font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;border:2px solid transparent;background:#ffffff16;color:var(--ink);min-height:48px}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+select option{color:#111}
+.row{display:flex;gap:8px}.row>*{flex:1}
+button{font:inherit;font-weight:800;border:0;border-radius:14px;min-height:48px;padding:12px 18px;cursor:pointer;background:#ffffff1c;color:var(--ink)}
+.big{width:100%;font-size:19px;background:var(--green);color:#fff;box-shadow:0 5px 0 #0b3a24;margin-top:6px}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 #0b3a24}
+.big[disabled]{opacity:.45;cursor:not-allowed}
+.sec{width:100%;margin-top:8px}
+.ghost{background:transparent;color:var(--mut);text-decoration:underline;width:100%}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);color:var(--cink);border-radius:999px;padding:6px 6px 6px 14px;font-weight:600}
+.chip button{min-height:32px;width:32px;padding:0;border-radius:50%;background:#0000000f;color:var(--cink)}
+.empty{color:var(--mut);font-size:15px;margin:8px 0 0}
+.err{background:#00000033;border-left:4px solid var(--gold);padding:10px 12px;border-radius:10px;margin:10px 0;font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}
+.who{min-height:64px;background:var(--card);color:var(--red);border-bottom:5px solid var(--green);font-size:18px;position:relative}
+.who.done{background:#ffffff14;color:var(--mut)}
+.who.done::after{content:"✓";position:absolute;top:6px;right:10px;color:var(--gold)}
+.tag{position:relative;background:var(--card);color:var(--cink);border-radius:22px;padding:44px 22px 26px;margin:26px 0 18px;text-align:center;box-shadow:0 14px 0 #00000033,0 20px 40px #0005;min-height:240px;display:flex;flex-direction:column;justify-content:center}
+.tag::before{content:"";position:absolute;top:14px;left:50%;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:var(--bg2);box-shadow:inset 0 0 0 3px var(--gold)}
+.tag{border:3px solid var(--green)}
+.tag .k{font-size:15px;color:#6b6257;margin:0}
+.tag .name{font-family:"Bagel Fat One",sans-serif;font-size:clamp(38px,12vw,56px);color:var(--red);line-height:1.05;margin:8px 0;overflow-wrap:anywhere}
+.tag .meta{font-size:15px;margin:4px 0 0}
+.ribbon{position:absolute;inset:auto 0 0 0;height:12px;background:repeating-linear-gradient(-45deg,var(--red) 0 10px,#fff 10px 20px);border-radius:0 0 22px 22px}
+.hold{user-select:none;-webkit-user-select:none;touch-action:none;position:relative;overflow:hidden;background:var(--gold);color:#2a1d00;box-shadow:0 5px 0 #a87a12}
+.hold .fill{position:absolute;inset:0;width:0;background:#ffffff66;pointer-events:none}
+.hold span{position:relative}
+.cover{filter:blur(16px);opacity:.25}
+.qr{background:#fff;border-radius:20px;padding:18px;margin:16px auto;width:min(100%,300px);aspect-ratio:1;display:grid;place-items:center;box-shadow:0 0 0 5px var(--gold)}
+.qr img,.qr canvas{width:100%!important;height:auto!important;image-rendering:pixelated}
+.link{font-size:13px;word-break:break-all;color:var(--mut);background:#0003;border-radius:10px;padding:8px 10px;margin-top:8px;user-select:all}
+.clock{font-family:"Bagel Fat One",sans-serif;font-size:clamp(56px,20vw,96px);line-height:1;text-align:center;color:var(--gold);margin:18px 0 4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.center{text-align:center}
+.pill{display:inline-block;background:#ffffff1c;border-radius:999px;padding:6px 14px;margin:4px;font-size:15px;white-space:nowrap}
+.steps{margin:0;padding-left:20px;color:var(--mut);font-size:15px}.steps li{margin:4px 0}
+.modal{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;padding:16px;z-index:9;overflow-y:auto}
+.modal.on{display:flex}
+.modal .in{background:radial-gradient(120% 80% at 50% 0%,var(--bg),var(--bg2));border-radius:20px;padding:20px;max-width:420px;width:100%;box-shadow:0 0 0 2px var(--gold);margin:auto}
+@media(prefers-reduced-motion:no-preference){.pop{animation:pop .5s cubic-bezier(.2,1.4,.4,1)}@keyframes pop{from{transform:scale(.8) rotate(-4deg);opacity:0}}}
+</style>
+</head>
+<body>
+<div class="stripe" aria-hidden="true"></div>
+<canvas id="snow" aria-hidden="true"></canvas>
+<main id="app"></main>
+<div class="modal" id="modal"><div class="in" id="modalIn"></div></div>
+<script>
+{
+const ART='https://claude.ai/artifact/JxUS6ZNLuqb8oYRptuQLQE';
+const hn=location.hostname||'';
+const BASE=(location.protocol==='https:'||location.protocol==='http:')&&hn&&!/claude|anthropic|claudeusercontent/.test(hn)&&hn!=='localhost'?location.origin+location.pathname:ART;
+const KEY='ss-lille-v3',MINE='ss-lille-mine';
+let S={step:'setup',people:["Youn's",'Océ','Flo','Rudy','Clem','ClemClem'],excl:[["Youn's",'Océ'],['Flo','Rudy']],budget:'20',place:'Grand Place, devant la Déesse',meet:'',draw:null,sent:[],owner:"Youn's"};
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.people)S=Object.assign(S,s)}catch(e){}
+
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+const app=$('app');
+let timer=null,err='';
+
+/* ---- encodage du ticket (illisible à l'œil nu) ---- */
+const AL='abcdefghijklmnopqrstuvwxyz234567';
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function b32(bytes){let bits=0,v=0,o='';for(const b of bytes){v=(v<<8)|b;bits+=8;while(bits>=5){o+=AL[(v>>>(bits-5))&31];bits-=5}}if(bits)o+=AL[(v<<(5-bits))&31];return o}
+function unb32(s){let bits=0,v=0;const o=[];for(const c of s){const i=AL.indexOf(c);if(i<0)throw 0;v=(v<<5)|i;bits+=5;if(bits>=8){o.push((v>>>(bits-8))&255);bits-=8}}return new Uint8Array(o)}
+function encode(obj){
+  const data=new TextEncoder().encode(JSON.stringify(obj));
+  const salt=crypto.getRandomValues(new Uint8Array(4));
+  const r=rng(new DataView(salt.buffer).getUint32(0));
+  const out=new Uint8Array(4+data.length);out.set(salt);
+  data.forEach((b,i)=>out[4+i]=b^Math.floor(r()*256));
+  return 'ss-'+b32(out);
+}
+function decode(h){
+  if(!h.startsWith('ss-'))return null;
+  try{const all=unb32(h.slice(3));const salt=all.slice(0,4);const r=rng(new DataView(salt.buffer).getUint32(0));
+    const d=all.slice(4).map(b=>b^Math.floor(r()*256));const o=JSON.parse(new TextDecoder().decode(d));return o&&o.g&&o.r?o:null}catch(e){return null}
+}
+const ticketFor=g=>encode({g,r:S.draw[g],b:S.budget,p:S.place,m:S.meet});
+
+/* ---- tirage ---- */
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=crypto.getRandomValues(new Uint32Array(1))[0]%(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+function banned(a,b){return a===b||S.excl.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a))}
+function doDraw(){
+  for(let t=0;t<20000;t++){
+    const order=shuffle(S.people),res={};let ok=true;
+    for(let i=0;i<order.length;i++){const g=order[i],r=order[(i+1)%order.length];if(banned(g,r)){ok=false;break}res[g]=r}
+    if(ok)return res;
+  }
+  return null;
+}
+function modal(html){$('modalIn').innerHTML=html;$('modal').classList.add('on')}
+function closeModal(){$('modal').classList.remove('on');$('modalIn').innerHTML=''}
+
+/* ---- compte à rebours ---- */
+function countdown(meet,elC,elL){
+  const tick=()=>{
+    if(!document.body.contains(elC))return;
+    if(!meet){elC.textContent='--:--';elL.textContent='Heure de retour pas encore fixée';return}
+    const [h,m]=meet.split(':').map(Number),t=new Date();t.setHours(h,m,0,0);
+    const d=Math.round((t-new Date())/1000);
+    if(d<=0){elC.textContent='0:00';elL.textContent='C\'est l\'heure ! Direction le point de rendez-vous.';return}
+    const hh=Math.floor(d/3600),mm=Math.floor(d%3600/60),ss=d%60;
+    elC.textContent=hh?`${hh}h${String(mm).padStart(2,'0')}`:`${mm}:${String(ss).padStart(2,'0')}`;
+    elL.textContent='avant le retour au point de rendez-vous';
+  };
+  tick();timer=setInterval(tick,1000);
+}
+
+/* ---- vue d'un participant (ouverte via son QR code) ---- */
+function guest(t){
+  clearInterval(timer);
+  try{localStorage.setItem(MINE,JSON.stringify(t))}catch(e){}
+  app.innerHTML=`
+  <h1>Salut ${esc(t.g)} !</h1>
+  <p class="sub">C'est ton tirage du Secret Santa. Cache bien ton écran avant de regarder.</p>
+  <div class="tag" id="tag"><div class="cover"><p class="k">Tu offres un cadeau à</p><p class="name">????????</p><p class="meta">Budget ${esc(t.b)} €</p></div><div class="ribbon"></div></div>
+  <button class="big hold" id="hold"><span class="fill" id="fill"></span><span>Reste appuyé pour découvrir</span></button>
+  <div id="after" hidden>
+    <div class="clock" id="clk">--:--</div><p class="center" id="clkL" style="color:var(--mut);margin:0 0 16px"></p>
+    <div class="box center"><h3 style="margin:0">Rendez-vous</h3><p style="margin:6px 0 0;font-size:20px;font-weight:800">${esc(t.p||'À définir')}</p>${t.m?`<p style="margin:2px 0 0">à ${esc(t.m)}</p>`:''}</div>
+    <button class="sec" id="hideB">Cacher le nom</button>
+  </div>`;
+  const hold=$('hold'),fill=$('fill');let t0=0,raf=0,shown=false;
+  const show=()=>{shown=true;$('tag').innerHTML=`<div class="pop"><p class="k">Tu offres un cadeau à</p><p class="name">${esc(t.r)}</p><p class="meta">Budget ${esc(t.b)} € · chut, c'est secret</p></div><div class="ribbon"></div>`;hold.hidden=true;$('after').hidden=false;clearInterval(timer);countdown(t.m,$('clk'),$('clkL'))};
+  const step=ts=>{if(!t0)t0=ts;const k=Math.min(1,(ts-t0)/900);fill.style.width=k*100+'%';if(k>=1)return show();raf=requestAnimationFrame(step)};
+  hold.addEventListener('pointerdown',e=>{e.preventDefault();if(shown)return;t0=0;raf=requestAnimationFrame(step)});
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>hold.addEventListener(ev,()=>{cancelAnimationFrame(raf);if(!shown)fill.style.width='0'}));
+  hold.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!shown)show()});
+  hold.addEventListener('contextmenu',e=>e.preventDefault());
+  $('hideB').onclick=()=>guest(t);
+}
+
+/* ---- vue organisateur ---- */
+function render(){
+  clearInterval(timer);
+  const t=decode(location.hash.slice(1));
+  if(t)return guest(t);
+  if(S.step==='setup'||!S.draw)return setup();
+  return share();
+}
+
+function setup(){
+  const n=S.people.length;
+  const opts=S.people.map(p=>`<option>${esc(p)}</option>`).join('');
+  let mine=null;try{mine=JSON.parse(localStorage.getItem(MINE))}catch(e){}
+  app.innerHTML=`
+  <h1>Secret Santa à Lille</h1>
+  <p class="sub">Tu prépares le tirage ici. Ensuite chacun scanne son QR code avec son propre téléphone et découvre son nom en secret.</p>
+  ${mine&&mine.g?`<button class="big hold" id="mineB" style="margin-bottom:16px"><span>Revoir mon tirage (${esc(mine.g)})</span></button>`:''}
+  <div class="box"><h3>Qui participe ?</h3>
+    <form id="addF" class="row"><input id="nm" placeholder="Prénom" autocomplete="off" maxlength="24"><button style="flex:0 0 auto">Ajouter</button></form>
+    <div class="chips">${S.people.map((p,i)=>`<span class="chip">${esc(p)}<button data-del="${i}" aria-label="Retirer ${esc(p)}">×</button></span>`).join('')||'<p class="empty">Ajoute au moins 3 personnes, toi compris.</p>'}</div>
+  </div>
+  <div class="box"><h3>Ils ne se tirent pas entre eux</h3>
+    <p class="empty" style="margin:0 0 6px">Pratique pour les couples.</p>
+    ${n>=2?`<div class="row"><select id="e1">${opts}</select><select id="e2">${opts}</select></div><button id="addE" class="sec">Ajouter l'exclusion</button>`:'<p class="empty">Ajoute d\'abord des participants.</p>'}
+    <div class="chips">${S.excl.map(([a,b],i)=>`<span class="chip">${esc(a)} ↔ ${esc(b)}<button data-dx="${i}" aria-label="Supprimer">×</button></span>`).join('')}</div>
+  </div>
+  <div class="box"><h3>À qui est ce téléphone ?</h3>
+    <p class="empty" style="margin:0 0 6px">Seule cette personne pourra voir son tirage ici. Tous les autres devront scanner leur QR code.</p>
+    ${n?`<select id="ow" aria-label="Propriétaire du téléphone"><option value="">Choisir…</option>${S.people.map(p=>`<option ${p===S.owner?'selected':''}>${esc(p)}</option>`).join('')}</select>`:'<p class="empty">Ajoute d\'abord des participants.</p>'}
+  </div>
+  <div class="box"><h3>Les règles du jeu</h3>
+    <label for="bd">Budget par cadeau (€)</label><input id="bd" type="number" inputmode="numeric" min="1" value="${esc(S.budget)}">
+    <label for="pl">Point de rendez-vous après les achats</label><input id="pl" value="${esc(S.place)}">
+    <label for="mt">Heure du rendez-vous</label><input id="mt" type="time" value="${esc(S.meet)}">
+  </div>
+  ${err?`<div class="err">${esc(err)}</div>`:''}
+  <button class="big" id="drawB" ${n<3?'disabled':''}>Lancer le tirage</button>`;
+  if($('mineB'))$('mineB').onclick=()=>guest(mine);
+  $('addF').onsubmit=e=>{e.preventDefault();const v=$('nm').value.trim();err='';
+    if(!v)return;if(S.people.some(p=>p.toLowerCase()===v.toLowerCase())){err=`${v} est déjà dans la liste.`;return render()}
+    S.people.push(v);save();render();$('nm').focus()};
+  app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const p=S.people[b.dataset.del];S.people.splice(b.dataset.del,1);S.excl=S.excl.filter(x=>!x.includes(p));if(S.owner===p)S.owner='';save();render()});
+  app.querySelectorAll('[data-dx]').forEach(b=>b.onclick=()=>{S.excl.splice(b.dataset.dx,1);save();render()});
+  if($('addE'))$('addE').onclick=()=>{const a=$('e1').value,b=$('e2').value;err='';if(a===b){err='Choisis deux personnes différentes.';return render()}
+    if(!banned(a,b))S.excl.push([a,b]);save();render()};
+  if($('ow'))$('ow').onchange=()=>{S.owner=$('ow').value;save()};
+  ['bd','pl','mt'].forEach(id=>$(id).oninput=()=>{S.budget=$('bd').value;S.place=$('pl').value;S.meet=$('mt').value;save()});
+  $('drawB').onclick=()=>{err='';
+    if(!S.owner||!S.people.includes(S.owner)){err='Indique à qui est ce téléphone (en général toi).';return render()}
+    if(!S.meet){err='Fixe l\'heure du rendez-vous : elle s\'affichera sur le téléphone de chacun.';return render()}
+    const d=doDraw();
+    if(!d){err='Impossible de faire un tirage avec ces exclusions. Retire-en une ou ajoute quelqu\'un.';return render()}
+    S.draw=d;S.sent=[];S.step='share';save();render();scrollTo(0,0)};
+}
+
+function share(){
+  const left=S.people.length-S.sent.length;
+  app.innerHTML=`
+  <h1>Tirage fait !</h1>
+  <p class="sub">Le résultat ne s'affiche pas sur cet écran. Touche le prénom de chaque ami : il scanne son QR code avec l'appareil photo de son téléphone. ${left?`Encore ${left} à distribuer.`:'Tout le monde a reçu son tirage.'}</p>
+  <div class="grid">${S.people.map(p=>`<button class="who ${S.sent.includes(p)?'done':''}" data-p="${esc(p)}">${esc(p)}</button>`).join('')}</div>
+  <div class="box"><h3>Comment ça marche pour eux</h3><ol class="steps"><li>Ouvrir l'appareil photo et viser le QR code.</li><li>Ouvrir le lien : la page s'ouvre sur leur téléphone.</li><li>Rester appuyé pour découvrir le nom, puis partir faire les achats.</li></ol></div>
+  <div class="center"><span class="pill">Budget ${esc(S.budget)} €</span><span class="pill">Retour à ${esc(S.meet)}</span></div>
+  <button class="ghost" id="resetB">Refaire un tirage</button>`;
+  app.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>openTicket(b.dataset.p));
+  $('resetB').onclick=()=>{
+    modal(`<h2>Refaire le tirage ?</h2><p>Les QR codes déjà scannés ne seront plus valables : tout le monde devra rescanner. Les participants restent enregistrés.</p><button class="big" id="mOk">Oui, revenir aux réglages</button><button class="ghost" id="mNo">Annuler</button>`);
+    $('mOk').onclick=()=>{closeModal();S.draw=null;S.sent=[];S.step='setup';save();render()};$('mNo').onclick=closeModal;
+  };
+}
+
+function openTicket(p){
+  const url=BASE+'#'+ticketFor(p);
+  modal(`<h2>À toi, ${esc(p)}</h2><p style="margin:0;color:var(--mut)">Scanne ce QR code avec ton téléphone.</p>
+    <div class="qr" id="qr"></div>
+    <button class="sec" id="cpB">Copier le lien (à envoyer par message)</button>
+    <div class="link" id="lk" hidden></div>
+    <button class="big" id="okB">C'est scanné, au suivant</button>
+    ${p===S.owner?'<button class="ghost" id="meB">C\'est moi : voir mon tirage sur ce téléphone</button>':''}`);
+  try{new QRCode($('qr'),{text:url,width:600,height:600,correctLevel:QRCode.CorrectLevel.M})}
+  catch(e){$('qr').innerHTML='<p style="color:#333;text-align:center;font-size:15px">QR code indisponible. Utilise le bouton « Copier le lien ».</p>'}
+  $('cpB').onclick=async()=>{try{await navigator.clipboard.writeText(url);$('cpB').textContent='Lien copié !'}catch(e){$('lk').hidden=false;$('lk').textContent=url;$('cpB').textContent='Copie le lien ci-dessous'}};
+  const mark=()=>{if(!S.sent.includes(p))S.sent.push(p);save()};
+  $('okB').onclick=()=>{mark();closeModal();render()};
+  if($('meB'))$('meB').onclick=()=>{mark();closeModal();const t=decode(ticketFor(p));guest(t);scrollTo(0,0);
+    const back=document.createElement('button');back.className='ghost';back.textContent='Retour à la distribution';back.onclick=()=>{render();scrollTo(0,0)};app.appendChild(back)};
+}
+
+$('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+addEventListener('hashchange',render);
+render();
+}
+</script>
+<script>
+{
+const c=document.getElementById('snow'),x=c.getContext('2d');
+const calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W=0,H=0,flakes=[];
+const mk=top=>({x:Math.random()*W,y:top?-10:Math.random()*H,r:1+Math.random()*3,s:.4+Math.random()*1.2,d:Math.random()*6.28,o:.5+Math.random()*.5});
+const size=()=>{const dpr=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);
+  const n=Math.round(Math.min(140,W*H/7000));while(flakes.length<n)flakes.push(mk(false));flakes.length=n};
+size();addEventListener('resize',size);
+const draw=()=>{x.clearRect(0,0,W,H);
+  for(const f of flakes){
+    if(!calm){f.d+=.01;f.y+=f.s;f.x+=Math.sin(f.d)*.5;if(f.y>H+5){Object.assign(f,mk(true))}if(f.x>W+5)f.x=-5;if(f.x<-5)f.x=W+5}
+    x.beginPath();x.arc(f.x,f.y,f.r,0,6.283);x.fillStyle='rgba(255,255,255,'+f.o+')';x.fill()}
+  if(!calm)requestAnimationFrame(draw)};
+draw();
+}
+</script>
+</body>
+</html>
